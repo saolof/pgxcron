@@ -1,0 +1,270 @@
+/* Very heavily inspired by bonsai css (https://github.com/bonsaicss)
+and keeps the variables & font stack, but stripped down & adapted to the project needs.
+ */
+:root {
+  --white: #fff;
+  --grey: #e6e6e6;
+  --black: #262626;
+  --green: #06847d;
+  --blue: #4a69bd;
+  --orange: #a46313;
+  --red: #e02e06;
+  --primary: var(--blue);
+  --secondary: var(--green);
+  --background: #fff;
+  --background-alt: #f8fafc;
+  --selection: #9e9e9e;
+  --text-main: #4a4a4a;
+  --text-bright: #000;
+  --text-muted: #707070;
+  --links: var(--primary);
+  --focus: rgba(74, 105, 189, .35);
+  --border: rgba(0, 0, 0, .2);
+  --border-radius: 4px;
+  --code: #000;
+  --animation-duration: .1s;
+  --button-hover: #ddd;
+  --button-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -1px rgba(0, 0, 0, .06);
+  --form-placeholder: #949494;
+  --form-text: #000;
+  --variable: #39a33c;
+  --highlight: #ff0;
+  --wrapper: 1280px;
+
+  --transition: all ease .4s;
+
+  --accent-border: 0;
+  --accent-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -2px rgba(0, 0, 0, .05);
+}
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+html {
+  font-family: -apple-system, BlinkMacSystemFont, Avenir, "Avenir Next", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+
+  color: var(--text-main);
+  background: var(--background);
+  text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  font-size: 1em;
+}
+code,
+samp,
+time {
+  background: var(--background);
+  color: var(--code);
+  padding: 2.5px 5px;
+  border-radius: 6px;
+  font-size: 1em;
+}
+pre > code {
+  padding: 10px;
+  display: block;
+  overflow-x: auto;
+}
+select {
+  display: block;
+}
+input:not([type="image"]),
+button,
+textarea,
+select,
+details > summary,
+ {
+  color: var(--form-text);
+  background-color: var(--background);
+
+  font-family: inherit;
+  font-size: calc(var(--x, 100) * 1%);
+
+  position: relative;
+  margin: .5rem .5rem .5rem 0;
+  padding: calc(var(--x, 100) * .08px) calc(var(--x, 100) * .12px);
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  outline: none;
+  appearance: none;
+}
+details {
+  margin: 0.5rem 0;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding-left: 12px;
+  padding-right: 12px;
+}
+details > summary {
+  border: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+details > *:last-child {
+  padding-bottom: 10px;
+}
+legend {
+  font-size: .9em;
+  font-weight: 600;
+}
+img {
+  max-width: 100%;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+::-moz-selection {
+  background-color: var(--selection);
+}
+::selection {
+  background-color: var(--selection);
+}
+footer {
+  font-size: .8em;
+  color: var(--text-muted);
+}
+svg {
+  display: inline-block;
+  font-size: inherit;
+  height: 1.2em;
+  vertical-align: -.2em;
+  overflow: visible;
+}
+figure {
+  display: inline-flex;
+  flex-direction: column;
+  margin: 0;
+}
+figure figcaption {
+    padding: .75rem 1.5rem;
+    margin: 0;
+  }
+table {
+  border-collapse: collapse;
+  margin-bottom: 10px;
+  width: 100%;
+}
+caption {
+  padding: .5rem 0;
+  text-align: start;
+  caption-side: top;
+}
+td,
+th {
+  padding: .5rem;
+  text-align: start;
+}
+th {
+  background: rgba(100,100,100,.025);
+}
+thead {
+  border-bottom: 1px solid rgba(100,100,100,.2);
+}
+tr + tr,
+tfoot {
+  border-top: 1px solid rgba(100,100,100,.2);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+  line-height: 1.3em;
+  margin: .5rem 0 .75rem;
+  color: var(--text-c, inherit);
+}
+h1 {
+  font-size: 2.8rem;
+}
+h2 {
+  font-size: 2.2rem;
+}
+h3 {
+  font-size: 1.8rem;
+}
+h4 {
+  font-size: 1.4rem;
+}
+h5 {
+  font-size: 1.2rem;
+}
+h6 {
+  font-size: 1rem;
+  line-height: 1.6em;
+}
+
+p,
+table {
+  margin: 0 0 1rem
+}
+a {
+  color: var(--links);
+  text-decoration: none;
+}
+b,
+strong,
+th {
+  font-weight: bold;
+}
+ul,
+ol {
+  padding: 0;
+  padding-inline-start: 2rem;
+}
+ul {
+  list-style: disc;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  margin: 0 1rem;
+}
+address {
+  font-style: normal;
+}
+mark {
+  background-color: var(--highlight);
+  border-radius: 2px;
+  padding: 0 2px 0 2px;
+}
+
+
+details > summary::marker {
+  content: "";
+}
+.fire {
+  text-shadow: hsl(19, 94%, 41%) 1px -3px 10px;
+}
+summary > .fire {
+  animation: animation 1s ease-in-out infinite alternate;
+}
+@keyframes animation
+{
+0% {text-shadow: 0 0 20px hsl(58, 96%, 89%),
+  10px -10px 30px hsl(51, 98%, 76%),
+  -20px -20px 40px hsl(36, 100%, 60%),
+  20px -40px 50px hsl(28, 90%, 49%),
+  -20px -60px 60px hsl(19, 94%, 41%),
+  0 -80px 70px hsl(15, 75%, 34%),
+  10px -90px 80px hsl(14, 66%, 16%);}
+100% {text-shadow: 0 0 20px hsl(58, 96%, 89%),
+  10px -10px 30px hsl(58, 96%, 89%),
+  -20px -20px 40px hsl(51, 98%, 76%),
+  22px -42px 60px hsl(36, 100%, 60%),
+  -22px -58px 50px hsl(28, 90%, 49%),
+  0 -82px 80px hsl(19, 94%, 41%),
+  10px -90px 80px hsl(15, 75%, 34%);}
+}

@@ -21,3 +21,5 @@ RUN mkdir -p /var/lib
 EXPOSE 8035
 
 CMD ["pgxcron", "-databases", "/etc/pgxcron/databases.toml", "-crontab", "/etc/pgxcron/crontab.toml","-historyfile", "/var/lib/pgxcronhistory.db", "-webport","8035"]
+COPY databases.toml /etc/pgxcron/databases.toml
+COPY crontab.toml /etc/pgxcron/crontab.toml
