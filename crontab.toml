@@ -1,0 +1,4 @@
+[example-healthcheck]
+cronschedule="* * * * *"
+database="example"
+query="select 1"

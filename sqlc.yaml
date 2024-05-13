@@ -1,0 +1,11 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "history_queries.sql"
+    schema: "history_schema.sql"
+    gen:
+      go:
+        package: "history"
+        out: "history"
+        emit_prepared_queries: true
+

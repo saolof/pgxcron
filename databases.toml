@@ -1,0 +1,16 @@
+
+# Slight hack: to avoid committing a password to repo,
+# each configured db may specify a password var, which is the
+# name of the environment variable used to inject the password.
+# This is substituted in instead of the first occurrent of $password
+
+# Alternatively, if pgpass is available, the underlying pgx library
+# can rely on that instead using the standard postgres environment variables:
+# https://pkg.go.dev/github.com/jackc/pgx/v5@v5.5.5/pgconn#ParseConfig
+# In that case, you may write justusepgpass=true to strip the :$password
+# from the connstring
+
+[example]
+connstring="postgresql://admin:$password@exampleurl.net:5432/postgres"
+justusepgpass=true
+passwordvar="EXAMPLE_PASS"

@@ -1,0 +1,38 @@
+{{ define "jobdisplay" }}
+    <article id="{{.Name}}"><details>
+    <summary style="display:flex; flex-direction:row; justify-content:space-between; align-items:baseline;">  <h3>{{ .Icon }} {{ .Name }}</h3>  <p> Will next run {{ .Nextrun }} </p> </summary>
+      <h4> Database: </h4>  <text class="{{.DatabaseIsOnFire}}"> {{ .Database }}</text>
+      <h4> Query: </h4> <code id="{{.Name}}_query"> {{ .Query }} </code>
+      <h5 style="text-align:center;"> Recent runs </h5>
+      <table id="{{.Name}}_runs" style="margin:auto;">
+        <tr> <th>#</th> <th>Start time</th> <th>Status</th> </tr>
+      <tbody>
+        {{- range $j, $run := .Runs }}
+        <tr> <td> {{ $run.Jobnumber }} </td> <td> {{ $run.Started }} </td> <td> {{ $run.Status }} </td> </tr>
+        {{- end }}
+      </tbody>
+      </table>
+    </details></article>
+{{ end }}
+
+
+{{ define "jobslist" }}
+    {{- range $i, $job := .}}
+    {{- if $job.OpenDbTag }}
+    <details open style="border:none;"><summary> <h1 style="text-align:center; margin:auto;" class="{{$job.DatabaseIsOnFire}}"> {{$job.Database}}</h1></summary>
+    {{- end }}
+    {{ template "jobdisplay" $job }}
+    {{- if $job.CloseDbTag }}
+    </details>
+    {{- end }}
+    {{- end }}
+{{ end}}
+
+
+{{ define "jobspage" }}
+{{ template  "header" }}
+<main style="display:flex; flex-direction:column; max-width:60rem; margin:0 auto;">
+    {{ template "jobslist" . }}
+</main>
+{{ template "footer" }}
+{{ end }}
