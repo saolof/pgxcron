@@ -11,7 +11,6 @@ COPY sqlc.yaml .
 RUN go mod download
 RUN sqlc generate
 COPY . .
-RUN ./fetch_static_deps.sh
 RUN go build
 
 from busybox:glibc
