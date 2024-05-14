@@ -18,14 +18,15 @@
 
 {{ define "jobslist" }}
     {{- range $i, $job := .}}
+    {{- if $job.CloseDbTag }}
+    </details>
+    {{- end }}
     {{- if $job.OpenDbTag }}
     <details open style="border:none;"><summary> <h1 style="text-align:center; margin:auto;" class="{{$job.DatabaseIsOnFire}}"> {{$job.Database}}</h1></summary>
     {{- end }}
     {{ template "jobdisplay" $job }}
-    {{- if $job.CloseDbTag }}
+    {{- end }}
     </details>
-    {{- end }}
-    {{- end }}
 {{ end}}
 
 

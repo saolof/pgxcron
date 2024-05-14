@@ -96,9 +96,6 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 			}
 			jobdisplays[i].DatabaseIsOnFire = isonfire
 		}
-		if len(jobdisplays) > 0 {
-			jobdisplays[len(jobdisplays)-1].CloseDbTag = true
-		}
 
 		err = templates.ExecuteTemplate(w, "jobspage", jobdisplays)
 		if err != nil {
