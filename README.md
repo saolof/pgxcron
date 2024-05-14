@@ -4,7 +4,7 @@
 ![Pgxcron logo, elephant with a clock on its head](/logo.webp)
 
 
-pgxcron is a service written in Go (so it is a self-contained protable binary) that reads a simple toml-formatted crontab file:
+pgxcron is a service written in Go (so it is a self-contained portable binary) that reads a simple toml-formatted crontab file:
 
 ```toml
 [example-healthcheck]
