@@ -2,3 +2,18 @@
 cronschedule="* * * * *"
 database="example"
 query="select 1"
+
+[example-analyze]
+cronschedule="0 6 * * *"
+database="example"
+query="analyze"
+
+[test-healthcheck]
+cronschedule="* * * * *"
+database="test"
+query="select 1"
+
+[test-analyze]
+cronschedule="0 */4 * * *"
+database="test"
+query="analyze"
