@@ -1,6 +1,6 @@
 {{ define "jobdisplay" }}
     <article id="{{.Name}}"><details>
-    <summary style="display:flex; flex-direction:row; justify-content:space-between; align-items:baseline;">  <h3>{{ .Icon }} {{ .Name }}</h3>  <p> Will next run {{ .Nextrun }} </p> </summary>
+    <summary style="display:flex; flex-direction:row; justify-content:space-between; align-items:baseline;"> <h3>{{ .Icon }} {{ .Name }}</h3> {{if .IsRunning}} <div class="loader" role="alert" aria-label="Running"></div> {{end}}   <p> Will next run {{ .Nextrun }} </p> </summary>
       <h4> Database: </h4>  <text class="{{.DatabaseIsOnFire}}"> {{ .Database }}</text>
       <h4> Query: </h4> <code id="{{.Name}}_query"> {{ .Query }} </code>
       <h5 style="text-align:center;"> Recent runs </h5>

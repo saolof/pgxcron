@@ -9,6 +9,9 @@ import (
 	"pgxcron/history"
 	"slices"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 //go:embed static
@@ -29,6 +32,7 @@ type JobDisplay struct {
 	Name             string
 	Query            string
 	Icon             string
+	IsRunning        bool
 	Nextrun          time.Time
 	Runs             []history.Jobrun
 	OpenDbTag        bool // To split by databases in a flat for loop
@@ -41,13 +45,18 @@ func computeJobDisplay(ctx context.Context, m Monitor, now time.Time, job Job) (
 	if err != nil {
 		return display, err
 	}
+	jobcount, err := m.JobRunningCount(job.DbName, job.JobName)
+	if err != nil {
+		return display, err
+	}
 	display = JobDisplay{
-		Database: job.DbName,
-		Name:     job.JobName,
-		Query:    job.Query,
-		Icon:     "🔵",
-		Nextrun:  job.Schedule.Next(now),
-		Runs:     recent,
+		Database:  job.DbName,
+		Name:      job.JobName,
+		Query:     job.Query,
+		IsRunning: jobcount != 0,
+		Icon:      "🔵",
+		Nextrun:   job.Schedule.Next(now),
+		Runs:      recent,
 	}
 	if len(recent) > 0 && recent[0].Status == "failed" {
 		display.Icon = "🔴"
@@ -107,10 +116,12 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 }
 
 func webserver(port int, jobs []Job, monitor Monitor) *http.Server {
-
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(monitor.ActiveJobs)
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", setHeader(http.FileServer(http.FS(FSstatic)), "Cache-Control", "max-age=86400"))
 	mux.HandleFunc("GET /jobs", showjobs(jobs, monitor))
+	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg, ErrorLog: monitor.ErrorLog}))
 
 	var h http.Handler = mux
 	//	h = middleware.Logger(h)
