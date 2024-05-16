@@ -50,10 +50,10 @@ It also embeds the postgres parser and will syntax check all queries on startup,
 contains a syntax error.
 
 
-## Monitoring dashboard
+## Monitoring dashboard & prometheus integration
 
-Apart from logging to stdout, pgxcron also provides a user-friendly monitoring dashboard which shows a record of the last few runs 
-of each indivudal job, along with aggregate database health showing the success status of the most recent job.
+Apart from logging to stdout, pgxcron also provides an optional HTTP server. The /jobs endpoint serves you an html
+dashboard with the jobs at a glance along with their last few runs. The /metrics endpoint exposes a set of prometheus metrics.
 
 This is intended to make it useful for cases where jobs may be run on many different database instances while still
 providing an easy overview of what jobs succeeded and failed, and makes it viable even for status checks.
@@ -77,6 +77,5 @@ and does not have other side effects, then pgxcron is intended to fill that gap.
 
 ## Near term priorities
 
-This is usable but in a fairly early state. Near term priorities include improving the logging using slog, improving HTTP monitoring,
-adding a prometheus endpoint and general integration with the grafana ecosystem, and adding configuration & choosing sane defaults for things
-like handling jobs that are still running when the next iteration of the same job is scheduled to start.
+This is usable but in a fairly early state. Near term priorities include improving the logging using slog,
+improving HTTP monitoring, and adding a few more configuration options with sane defaults.
