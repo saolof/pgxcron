@@ -45,7 +45,7 @@ connstring="postgresql://admin@localhost:5432/postgres"
 The daemon is stateless (apart from the monitoring HTTP endpoint), so its behaviour is only defined by the
 config file at startup and there should not be any consequences to restarting it.
 
-The cron library used internally is the same one as the one used by kubernetes and uses standard POSIX cron syntax. 
+The cron library used internally is the same one as the one used by kubernetes. Standard POSIX cron syntax is used. 
 It also embeds the postgres parser and will syntax check all queries on startup, and will refuse to start if any query
 contains a syntax error.
 
@@ -53,7 +53,7 @@ contains a syntax error.
 ## Monitoring dashboard & prometheus integration
 
 Apart from logging to stdout, pgxcron also provides an optional HTTP server. The /jobs endpoint serves you an html
-dashboard with the jobs at a glance along with their last few runs. The /metrics endpoint exposes a set of prometheus metrics.
+dashboard with the jobs at a glance which can be used to browse job history. The /metrics endpoint exposes a set of prometheus metrics.
 
 This is intended to make it useful for cases where jobs may be run on many different database instances while still
 providing an easy overview of what jobs succeeded and failed, and makes it viable even for status checks.
@@ -77,5 +77,6 @@ and does not have other side effects, then pgxcron is intended to fill that gap.
 
 ## Near term priorities
 
-This is usable but in a fairly early state. Near term priorities include improving the logging using slog,
-improving HTTP monitoring, and adding a few more configuration options with sane defaults.
+This is somewhat usable but in a somewhat early state. Near term priorities include improving the logging using slog,
+adding a few more configuration options with sane defaults, implementing an automated integration test workflow,
+and packaging for alpine apk.
