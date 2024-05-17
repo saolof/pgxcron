@@ -111,3 +111,12 @@ func (m Monitor) JobRunningCount(database, jobname string) (int, error) {
 	}
 	return int(metric.Gauge.GetValue()), nil
 }
+
+// The monitor is also a prometheus collector:
+func (m Monitor) Describe(ch chan<- *prometheus.Desc) {
+	m.ActiveJobs.Describe(ch)
+}
+
+func (m Monitor) Collect(ch chan<- prometheus.Metric) {
+	m.ActiveJobs.Collect(ch)
+}

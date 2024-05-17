@@ -117,7 +117,7 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 
 func webserver(port int, jobs []Job, monitor Monitor) *http.Server {
 	reg := prometheus.NewRegistry()
-	reg.MustRegister(monitor.ActiveJobs)
+	reg.MustRegister(monitor)
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", setHeader(http.FileServer(http.FS(FSstatic)), "Cache-Control", "max-age=86400"))
 	mux.HandleFunc("GET /jobs", showjobs(jobs, monitor))
