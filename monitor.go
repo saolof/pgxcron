@@ -141,9 +141,10 @@ func (m Monitor) collectDatabaseStatuses(desc *prometheus.Desc, ch chan<- promet
 			onfire = 0.0
 		}
 		metric, err := prometheus.NewConstMetric(desc, prometheus.GaugeValue, onfire, database)
-		if err == nil {
-			ch <- metric
+		if err != nil {
+			metric = prometheus.NewInvalidMetric(desc, err)
 		}
+		ch <- metric
 	}
 }
 
@@ -154,9 +155,10 @@ func (m Monitor) collectJobStatuses(desc *prometheus.Desc, ch chan<- prometheus.
 	}
 	for _, status := range statuses {
 		metric, err := prometheus.NewConstMetric(desc, prometheus.GaugeValue, float64(status.Succeeded), status.Jobname)
-		if err == nil {
-			ch <- metric
+		if err != nil {
+			metric = prometheus.NewInvalidMetric(desc, err)
 		}
+		ch <- metric
 	}
 }
 
