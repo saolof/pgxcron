@@ -74,7 +74,9 @@ func (m Monitor) SetStatus(ctx context.Context, id JobId, status string) error {
 }
 
 func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
-	m.SetStatus(ctx, id, "failed")
+	if err := m.SetStatus(ctx, id, "failed"); err != nil {
+		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
+	}
 	m.ErrorLog.Println(err)
 	gauge, err := m.ActiveJobs.GetMetricWithLabelValues(id.database, id.jobname)
 	if err != nil {
@@ -85,11 +87,15 @@ func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
 }
 
 func (m Monitor) Run(ctx context.Context, id JobId) {
-	m.SetStatus(ctx, id, "running")
+	if err := m.SetStatus(ctx, id, "running"); err != nil {
+		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
+	}
 }
 
 func (m Monitor) Complete(ctx context.Context, id JobId) {
-	m.SetStatus(ctx, id, "completed")
+	if err := m.SetStatus(ctx, id, "completed"); err != nil {
+		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
+	}
 	gauge, err := m.ActiveJobs.GetMetricWithLabelValues(id.database, id.jobname)
 	if err != nil {
 		m.ErrorLog.Printf("While failing, failed to find metric for failing job: %s", err)

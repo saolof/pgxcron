@@ -67,7 +67,11 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 	}
 	if webport > 0 && webport <= 49152 {
 		server := webserver(webport, jobs, monitor)
-		go server.ListenAndServe()
+		go func() {
+			if err := server.ListenAndServe(); err != nil {
+				logger.Printf("Fatal error in webserver: %s", err)
+			}
+		}()
 		fmt.Println("Listening to traffic on port ", webport)
 	}
 	c.Run()
