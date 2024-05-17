@@ -92,12 +92,16 @@ func (m Monitor) Complete(ctx context.Context, id JobId) {
 	gauge.Dec()
 }
 
-func (m Monitor) CheckIfOnFire(ctx context.Context, db string) (string, error) {
-	boolint, err := m.q.IsDatabaseOnFire(ctx, db)
-	if err != nil || boolint == int64(0) {
-		return "", err
+func (m Monitor) OnFireStatus(ctx context.Context) (map[string]bool, error) {
+	statuses := map[string]bool{}
+	statvec, err := m.q.LastDatabaseStatus(ctx)
+	if err != nil {
+		return statuses, err // Return empty map instead of nil
 	}
-	return "fire", nil
+	for _, val := range statvec {
+		statuses[val.Database] = val.Onfire
+	}
+	return statuses, nil
 }
 
 func (m Monitor) JobRunningCount(database, jobname string) (int, error) {

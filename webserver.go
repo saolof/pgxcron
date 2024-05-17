@@ -95,15 +95,16 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 		}
 		sortJobDisplays(jobdisplays)
 		prev_db := ""
-		isonfire := ""
+		onfire, _ := m.OnFireStatus(r.Context())
 		for i := range jobdisplays {
 			if jobdisplays[i].Database != prev_db {
 				jobdisplays[i].OpenDbTag = true
-				isonfire, _ = m.CheckIfOnFire(r.Context(), jobdisplays[i].Database)
 				jobdisplays[i].CloseDbTag = i != 0
 				prev_db = jobdisplays[i].Database
 			}
-			jobdisplays[i].DatabaseIsOnFire = isonfire
+			if onfire[jobdisplays[i].Database] {
+				jobdisplays[i].DatabaseIsOnFire = "fire"
+			}
 		}
 
 		err = templates.ExecuteTemplate(w, "jobspage", jobdisplays)

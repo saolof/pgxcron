@@ -22,5 +22,5 @@ where jobName = ?
 ORDER BY jobnumber desc
 LIMIT 15;
 
--- name: IsDatabaseOnFire :one
-select exists (select 1 from last_db_status WHERE database = ? AND available = 0);
+-- name: LastDatabaseStatus :many
+select database, available = 0 as onfire from last_db_status

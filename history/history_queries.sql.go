@@ -72,15 +72,36 @@ func (q *Queries) GetRecentRuns(ctx context.Context, jobname string) ([]Jobrun, 
 	return items, nil
 }
 
-const isDatabaseOnFire = `-- name: IsDatabaseOnFire :one
-select exists (select 1 from last_db_status WHERE database = ? AND available = 0)
+const lastDatabaseStatus = `-- name: LastDatabaseStatus :many
+select database, available = 0 as onfire from last_db_status
 `
 
-func (q *Queries) IsDatabaseOnFire(ctx context.Context, database string) (int64, error) {
-	row := q.queryRow(ctx, q.isDatabaseOnFireStmt, isDatabaseOnFire, database)
-	var column_1 int64
-	err := row.Scan(&column_1)
-	return column_1, err
+type LastDatabaseStatusRow struct {
+	Database string
+	Onfire   bool
+}
+
+func (q *Queries) LastDatabaseStatus(ctx context.Context) ([]LastDatabaseStatusRow, error) {
+	rows, err := q.query(ctx, q.lastDatabaseStatusStmt, lastDatabaseStatus)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LastDatabaseStatusRow
+	for rows.Next() {
+		var i LastDatabaseStatusRow
+		if err := rows.Scan(&i.Database, &i.Onfire); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setDatabaseStatus = `-- name: SetDatabaseStatus :exec
