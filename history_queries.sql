@@ -23,4 +23,7 @@ ORDER BY jobnumber desc
 LIMIT 15;
 
 -- name: LastDatabaseStatus :many
-select database, available = 0 as onfire from last_db_status
+select database, available = 0 as onfire from last_db_status;
+
+-- name: LastJobCompletedStatus :many
+select jobname, succeeded from last_finished_job_status;

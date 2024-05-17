@@ -11,9 +11,10 @@ import (
 )
 
 type Monitor struct {
-	q          *history.Queries
-	ErrorLog   *log.Logger
-	ActiveJobs *prometheus.GaugeVec
+	q                  *history.Queries
+	ErrorLog           *log.Logger
+	ActiveJobs         *prometheus.GaugeVec
+	MetricDescriptions map[string]*prometheus.Desc
 }
 
 func NewMonitor(db history.DBTX, logger *log.Logger) (m Monitor, err error) {
@@ -21,6 +22,10 @@ func NewMonitor(db history.DBTX, logger *log.Logger) (m Monitor, err error) {
 	if err != nil {
 		return m, err
 	}
+
+	db_status := prometheus.NewDesc("database_status", "Returns 1 if the database is available", []string{"database"}, map[string]string{})
+	job_status := prometheus.NewDesc("last_job_status", "Returns 1 if the lastest finished job succeeded", []string{"jobname"}, map[string]string{})
+	descriptions := map[string]*prometheus.Desc{"database_status": db_status, "last_job_status": job_status}
 
 	return Monitor{
 		q:        queries,
@@ -30,6 +35,7 @@ func NewMonitor(db history.DBTX, logger *log.Logger) (m Monitor, err error) {
 			Help: "number of running cron jobs",
 		},
 			[]string{"database", "jobname"}),
+		MetricDescriptions: descriptions,
 	}, nil
 }
 
@@ -116,11 +122,51 @@ func (m Monitor) JobRunningCount(database, jobname string) (int, error) {
 	return int(metric.Gauge.GetValue()), nil
 }
 
-// The monitor is also a prometheus collector:
+// Implements the prometheus Collector interface
 func (m Monitor) Describe(ch chan<- *prometheus.Desc) {
 	m.ActiveJobs.Describe(ch)
+	for _, desc := range m.MetricDescriptions {
+		ch <- desc
+	}
 }
 
+func (m Monitor) collectDatabaseStatuses(desc *prometheus.Desc, ch chan<- prometheus.Metric) {
+	onfiremap, err := m.OnFireStatus(context.TODO())
+	if err != nil {
+		return
+	}
+	for database, isonfire := range onfiremap {
+		onfire := 1.0
+		if isonfire {
+			onfire = 0.0
+		}
+		metric, err := prometheus.NewConstMetric(desc, prometheus.GaugeValue, onfire, database)
+		if err == nil {
+			ch <- metric
+		}
+	}
+}
+
+func (m Monitor) collectJobStatuses(desc *prometheus.Desc, ch chan<- prometheus.Metric) {
+	statuses, err := m.q.LastJobCompletedStatus(context.TODO())
+	if err != nil {
+		return
+	}
+	for _, status := range statuses {
+		metric, err := prometheus.NewConstMetric(desc, prometheus.GaugeValue, float64(status.Succeeded), status.Jobname)
+		if err == nil {
+			ch <- metric
+		}
+	}
+}
+
+// Implements the prometheus Collector interface
 func (m Monitor) Collect(ch chan<- prometheus.Metric) {
 	m.ActiveJobs.Collect(ch)
+	if desc, ok := m.MetricDescriptions["database_status"]; ok {
+		m.collectDatabaseStatuses(desc, ch)
+	}
+	if desc, ok := m.MetricDescriptions["last_job_status"]; ok {
+		m.collectJobStatuses(desc, ch)
+	}
 }

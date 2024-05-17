@@ -33,6 +33,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.lastDatabaseStatusStmt, err = db.PrepareContext(ctx, lastDatabaseStatus); err != nil {
 		return nil, fmt.Errorf("error preparing query LastDatabaseStatus: %w", err)
 	}
+	if q.lastJobCompletedStatusStmt, err = db.PrepareContext(ctx, lastJobCompletedStatus); err != nil {
+		return nil, fmt.Errorf("error preparing query LastJobCompletedStatus: %w", err)
+	}
 	if q.setDatabaseStatusStmt, err = db.PrepareContext(ctx, setDatabaseStatus); err != nil {
 		return nil, fmt.Errorf("error preparing query SetDatabaseStatus: %w", err)
 	}
@@ -57,6 +60,11 @@ func (q *Queries) Close() error {
 	if q.lastDatabaseStatusStmt != nil {
 		if cerr := q.lastDatabaseStatusStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing lastDatabaseStatusStmt: %w", cerr)
+		}
+	}
+	if q.lastJobCompletedStatusStmt != nil {
+		if cerr := q.lastJobCompletedStatusStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing lastJobCompletedStatusStmt: %w", cerr)
 		}
 	}
 	if q.setDatabaseStatusStmt != nil {
@@ -106,23 +114,25 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                     DBTX
-	tx                     *sql.Tx
-	createJobRunStmt       *sql.Stmt
-	getRecentRunsStmt      *sql.Stmt
-	lastDatabaseStatusStmt *sql.Stmt
-	setDatabaseStatusStmt  *sql.Stmt
-	setJobStatusStmt       *sql.Stmt
+	db                         DBTX
+	tx                         *sql.Tx
+	createJobRunStmt           *sql.Stmt
+	getRecentRunsStmt          *sql.Stmt
+	lastDatabaseStatusStmt     *sql.Stmt
+	lastJobCompletedStatusStmt *sql.Stmt
+	setDatabaseStatusStmt      *sql.Stmt
+	setJobStatusStmt           *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                     tx,
-		tx:                     tx,
-		createJobRunStmt:       q.createJobRunStmt,
-		getRecentRunsStmt:      q.getRecentRunsStmt,
-		lastDatabaseStatusStmt: q.lastDatabaseStatusStmt,
-		setDatabaseStatusStmt:  q.setDatabaseStatusStmt,
-		setJobStatusStmt:       q.setJobStatusStmt,
+		db:                         tx,
+		tx:                         tx,
+		createJobRunStmt:           q.createJobRunStmt,
+		getRecentRunsStmt:          q.getRecentRunsStmt,
+		lastDatabaseStatusStmt:     q.lastDatabaseStatusStmt,
+		lastJobCompletedStatusStmt: q.lastJobCompletedStatusStmt,
+		setDatabaseStatusStmt:      q.setDatabaseStatusStmt,
+		setJobStatusStmt:           q.setJobStatusStmt,
 	}
 }

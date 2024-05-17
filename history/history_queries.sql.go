@@ -104,6 +104,38 @@ func (q *Queries) LastDatabaseStatus(ctx context.Context) ([]LastDatabaseStatusR
 	return items, nil
 }
 
+const lastJobCompletedStatus = `-- name: LastJobCompletedStatus :many
+select jobname, succeeded from last_finished_job_status
+`
+
+type LastJobCompletedStatusRow struct {
+	Jobname   string
+	Succeeded int64
+}
+
+func (q *Queries) LastJobCompletedStatus(ctx context.Context) ([]LastJobCompletedStatusRow, error) {
+	rows, err := q.query(ctx, q.lastJobCompletedStatusStmt, lastJobCompletedStatus)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LastJobCompletedStatusRow
+	for rows.Next() {
+		var i LastJobCompletedStatusRow
+		if err := rows.Scan(&i.Jobname, &i.Succeeded); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setDatabaseStatus = `-- name: SetDatabaseStatus :exec
 INSERT INTO last_db_status (database, last_seen, available)
 VALUES (?, ?, ?)
