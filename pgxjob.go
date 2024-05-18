@@ -23,17 +23,18 @@ type Job struct {
 	Query    string
 	config   *pgx.ConnConfig
 	monitor  Monitor
+	misc     JobMiscOptions
 	valid    bool
 }
 
-func CreateJob(jobname, dbname string, s Schedule, target, query string, validate bool, monitor Monitor) (j Job, err error) {
+func CreateJob(jobname, dbname string, s Schedule, target, query string, misc JobMiscOptions, monitor Monitor) (j Job, err error) {
 	if jobname == "" || dbname == "" || s == nil {
 		return j, fmt.Errorf("Received nil input(s) when creating %s", jobname)
 	}
 	if query == "" {
 		return j, fmt.Errorf("Job %s does not provide a query to run!", jobname)
 	}
-	if validate {
+	if !misc.SkipValidation {
 		_, err := pg_query.Parse(query)
 		if err != nil {
 			return j, fmt.Errorf("Failed to validate query in %s, encountered probable syntax error: %w", jobname, err)
@@ -43,6 +44,9 @@ func CreateJob(jobname, dbname string, s Schedule, target, query string, validat
 	config, err := pgx.ParseConfig(target)
 	if err != nil {
 		return j, err
+	}
+	if config.ConnectTimeout == time.Duration(0) { // Default to 50 seconds if no finite timeout is provided
+		config.ConnectTimeout = 50 * time.Second // via the standard pgx & psql PGCONNECT_TIMEOUT env var
 	}
 
 	return Job{

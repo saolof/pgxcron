@@ -43,11 +43,16 @@ func DecodeDatabases(crontab io.Reader, usepgpass bool) (map[string]string, erro
 	return databases, nil
 }
 
+type JobMiscOptions struct {
+	SkipValidation      bool
+	AllowConcurrentJobs bool
+}
+
 type JobConfig struct {
-	CronSchedule   string
-	Database       string
-	Query          string
-	SkipValidation bool
+	CronSchedule string
+	Database     string
+	Query        string
+	JobMiscOptions
 }
 
 func DecodeJobs(crontab io.Reader) (jobconfigs map[string]JobConfig, err error) {
@@ -70,7 +75,7 @@ func CreateJobs(configs map[string]JobConfig, databases map[string]string, monit
 		if !ok {
 			return nil, fmt.Errorf("Missing Db: The database %s specified by job %s does not seem to exist!", config.Database, name)
 		}
-		job, err := CreateJob(name, config.Database, schedule, connstr, config.Query, !config.SkipValidation, monitor)
+		job, err := CreateJob(name, config.Database, schedule, connstr, config.Query, config.JobMiscOptions, monitor)
 		if err != nil {
 			return nil, err
 		}

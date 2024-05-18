@@ -62,8 +62,14 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 	}
 	fmt.Println("Validated config files, starting up cron jobs...")
 	c := cron.New()
+	cronlogger := cron.VerbosePrintfLogger(logger)
+	delaywrapper := cron.DelayIfStillRunning(cronlogger)
 	for _, job := range jobs {
-		c.Schedule(job.Schedule, job)
+		if job.misc.AllowConcurrentJobs {
+			c.Schedule(job.Schedule, job)
+		} else {
+			c.Schedule(job.Schedule, delaywrapper(job))
+		}
 	}
 	if webport > 0 && webport <= 49152 {
 		server := webserver(webport, jobs, monitor)
