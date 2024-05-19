@@ -5,10 +5,10 @@
       <h4> Query: </h4> <code id="{{.Name}}_query"> {{ .Query }} </code>
       <h5 style="text-align:center;"> Recent runs </h5>
       <table id="{{.Name}}_runs" style="margin:auto;">
-        <tr> <th>#</th> <th>Start time</th> <th>Status</th> </tr>
+        <tr> <th>#</th> <th>Start time</th> <th> End time </th> <th>Status</th> </tr>
       <tbody>
         {{- range $j, $run := .Runs }}
-        <tr> <td> {{ $run.Jobnumber }} </td> <td> {{ $run.Started }} </td> <td> {{ $run.Status }} </td> </tr>
+        <tr> <td> {{ $run.Jobnumber }} </td> <td> {{ $run.Started }} </td> <td> {{ $run.Ended}} </td> <td> {{ $run.Status }} </td> </tr>
         {{- end }}
       </tbody>
       </table>
