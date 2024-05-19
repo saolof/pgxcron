@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/saolof/pgxcron/history"
 	"log"
-	"pgxcron/history"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"

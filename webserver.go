@@ -4,9 +4,9 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"github.com/saolof/pgxcron/history"
 	"html/template"
 	"net/http"
-	"pgxcron/history"
 	"slices"
 	"time"
 
