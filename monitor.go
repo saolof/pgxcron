@@ -66,15 +66,26 @@ func (m Monitor) RegisterJob(ctx context.Context, jobname, database, query strin
 	return JobId{id: id, jobname: jobname, database: database}, false
 }
 
-func (m Monitor) SetStatus(ctx context.Context, id JobId, status string) error {
-	return m.q.SetJobStatus(ctx, history.SetJobStatusParams{
+func (m Monitor) Run(ctx context.Context, id JobId) {
+	err := m.q.SetJobStatus(ctx, history.SetJobStatusParams{
+		ID:     id.id,
+		Status: "running",
+	})
+	if err != nil {
+		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
+	}
+}
+
+func (m Monitor) endJob(ctx context.Context, id JobId, status string) error {
+	return m.q.MakJobAsFinished(ctx, history.MakJobAsFinishedParams{
 		ID:     id.id,
 		Status: status,
+		Ended:  time.Now().Format("2006-01-02 15:04:05 -0700 MST"),
 	})
 }
 
 func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
-	if err := m.SetStatus(ctx, id, "failed"); err != nil {
+	if err := m.endJob(ctx, id, "failed"); err != nil {
 		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
 	}
 	m.ErrorLog.Println(err)
@@ -86,14 +97,8 @@ func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
 	gauge.Dec()
 }
 
-func (m Monitor) Run(ctx context.Context, id JobId) {
-	if err := m.SetStatus(ctx, id, "running"); err != nil {
-		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
-	}
-}
-
 func (m Monitor) Complete(ctx context.Context, id JobId) {
-	if err := m.SetStatus(ctx, id, "completed"); err != nil {
+	if err := m.endJob(ctx, id, "completed"); err != nil {
 		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
 	}
 	gauge, err := m.ActiveJobs.GetMetricWithLabelValues(id.database, id.jobname)

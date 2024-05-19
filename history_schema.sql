@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS jobruns (
   database text NOT NULL,
   query text NOT NULL,
   started text NOT NULL,
+  ended text NOT NULL DEFAULT '',
   status text NOT NULL DEFAULT 'connecting'
 ) STRICT;
 

@@ -35,7 +35,7 @@ func (q *Queries) CreateJobRun(ctx context.Context, arg CreateJobRunParams) (int
 }
 
 const getRecentRuns = `-- name: GetRecentRuns :many
-SELECT id, jobname, jobnumber, "database", "query", started, status from jobruns
+SELECT id, jobname, jobnumber, "database", "query", started, ended, status from jobruns
 where jobName = ?
 ORDER BY jobnumber desc
 LIMIT 15
@@ -57,6 +57,7 @@ func (q *Queries) GetRecentRuns(ctx context.Context, jobname string) ([]Jobrun, 
 			&i.Database,
 			&i.Query,
 			&i.Started,
+			&i.Ended,
 			&i.Status,
 		); err != nil {
 			return nil, err
@@ -134,6 +135,23 @@ func (q *Queries) LastJobCompletedStatus(ctx context.Context) ([]LastJobComplete
 		return nil, err
 	}
 	return items, nil
+}
+
+const makJobAsFinished = `-- name: MakJobAsFinished :exec
+update jobruns
+SET status= ?, ended= ?
+where id = ?
+`
+
+type MakJobAsFinishedParams struct {
+	Status string
+	Ended  string
+	ID     int64
+}
+
+func (q *Queries) MakJobAsFinished(ctx context.Context, arg MakJobAsFinishedParams) error {
+	_, err := q.exec(ctx, q.makJobAsFinishedStmt, makJobAsFinished, arg.Status, arg.Ended, arg.ID)
+	return err
 }
 
 const setDatabaseStatus = `-- name: SetDatabaseStatus :exec

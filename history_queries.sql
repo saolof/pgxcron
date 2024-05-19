@@ -9,6 +9,11 @@ update jobruns
 SET status= ?
 where id = ?;
 
+-- name: MakJobAsFinished :exec
+update jobruns
+SET status= ?, ended= ?
+where id = ?;
+
 -- name: SetDatabaseStatus :exec
 INSERT INTO last_db_status (database, last_seen, available)
 VALUES (?, ?, ?)

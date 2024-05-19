@@ -11,6 +11,7 @@ type Jobrun struct {
 	Database  string
 	Query     string
 	Started   string
+	Ended     string
 	Status    string
 }
 
