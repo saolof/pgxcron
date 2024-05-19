@@ -6,11 +6,13 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/robfig/cron/v3"
 	"io"
 	"log"
 	"os"
+	"runtime/debug"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/robfig/cron/v3"
 )
 
 //go:embed history_schema.sql
@@ -93,7 +95,13 @@ func main() {
 	flag.StringVar(&historyfile, "historyfile", historyfile, "Path to the database file used for job history logging.")
 	webport := flag.Int("webport", 8035, "The port used for the web interface that can be used to check on recent jobs. Set to zero to disable the web interface.")
 	check := flag.Bool("check", false, "This flag disables spinning up the cron jobs and just syntax checks the config.")
+	version := flag.Bool("version", false, "Check go module version")
 	flag.Parse()
+	if *version {
+		buildinfo, _ := debug.ReadBuildInfo()
+		println(buildinfo.Main.Version)
+		os.Exit(0)
+	}
 	ctx := context.Background()
 	if err := run(ctx, os.Stdout, log.Default(), *webport, *check, crontab, databases, historyfile, os.Args); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
