@@ -40,6 +40,11 @@ type JobDisplay struct {
 	DatabaseIsOnFire string
 }
 
+type JobPageModel struct {
+	Favicon     string
+	JobDisplays []JobDisplay
+}
+
 func computeJobDisplay(ctx context.Context, m Monitor, now time.Time, job Job) (display JobDisplay, err error) {
 	recent, err := m.q.GetRecentRuns(ctx, job.JobName) // SQLite is in-memory so O(N) prepared queries is ok
 	if err != nil {
@@ -96,6 +101,7 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 		sortJobDisplays(jobdisplays)
 		prev_db := ""
 		onfire, _ := m.OnFireStatus(r.Context())
+		favicon := "static/favicon.png"
 		for i := range jobdisplays {
 			if jobdisplays[i].Database != prev_db {
 				jobdisplays[i].OpenDbTag = true
@@ -104,10 +110,14 @@ func showjobs(jobs []Job, m Monitor) http.HandlerFunc {
 			}
 			if onfire[jobdisplays[i].Database] {
 				jobdisplays[i].DatabaseIsOnFire = "fire"
+				favicon = "static/favicon_fire.png"
 			}
 		}
-
-		err = templates.ExecuteTemplate(w, "jobspage", jobdisplays)
+		model := JobPageModel{
+			JobDisplays: jobdisplays,
+			Favicon:     favicon,
+		}
+		err = templates.ExecuteTemplate(w, "jobspage", model)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

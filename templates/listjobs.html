@@ -31,9 +31,9 @@
 
 
 {{ define "jobspage" }}
-{{ template  "header" }}
+{{ template  "header" . }}
 <main style="display:flex; flex-direction:column; max-width:60rem; margin:0 auto;">
-    {{ template "jobslist" . }}
+    {{ template "jobslist" .JobDisplays }}
 </main>
 {{ template "footer" }}
 {{ end }}
