@@ -16,10 +16,9 @@ COPY . .
 # musl being linked statically means the entire binary is portable
 RUN CGO=1 CC=musl-gcc go build --ldflags '-linkmode=external -extldflags=-static'
 
-from alpine:latest
+from bash:latest
 
 COPY --from=builder /pgxcron/pgxcron /bin/pgxcron
-RUN mkdir -p /var/lib
 EXPOSE 8035
 
 CMD ["pgxcron", "-databases", "/etc/pgxcron/databases.toml", "-crontab", "/etc/pgxcron/crontab.toml","-historyfile", "/var/lib/pgxcronhistory.db", "-webport","8035"]
