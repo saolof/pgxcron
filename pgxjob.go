@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"slices"
@@ -70,14 +69,14 @@ func (j Job) Run() {
 		j.monitor.ErrorLog.Printf("ERROR: Invalid pgxcron job %s scheduled!", j.JobName)
 		return
 	}
-	ctx := context.TODO()
+	ctx := j.monitor.BgCtx
 	id, terminate := j.monitor.RegisterJob(ctx, j.JobName, j.DbName, j.Query)
 	if terminate {
 		return
 	}
 	conn, err := pgx.ConnectConfig(ctx, j.config)
 	if err != nil {
-		j.monitor.Fail(ctx, id, fmt.Errorf("ERROR: Could not connect to database, aborting %s due to: %w", j.JobName, err))
+		j.monitor.Fail(id, fmt.Errorf("ERROR: Could not connect to database, aborting %s due to: %w", j.JobName, err))
 		return
 	}
 	defer conn.Close(ctx)
@@ -85,10 +84,10 @@ func (j Job) Run() {
 	j.monitor.Run(ctx, id)
 	_, err = conn.Exec(ctx, j.Query)
 	if err != nil {
-		j.monitor.Fail(ctx, id, fmt.Errorf("ERROR: while running %s, failed due to: %w", j.JobName, err))
+		j.monitor.Fail(id, fmt.Errorf("ERROR: while running %s, failed due to: %w", j.JobName, err))
 		return
 	}
-	j.monitor.Complete(ctx, id)
+	j.monitor.Complete(id)
 }
 
 func sortJobsLex(jobs []Job) {

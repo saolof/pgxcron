@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"runtime/debug"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -41,6 +42,8 @@ func makeJobs(cronfile string, databasefile string, logger *log.Logger, monitor 
 }
 
 func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, check bool, crontab, databases, historyfile string, args []string) error {
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
+	defer stop()
 	db, err := sql.Open("sqlite3", historyfile)
 	if err != nil {
 		return err
@@ -50,7 +53,7 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 		return fmt.Errorf("Error creating tables: %w", err)
 	}
 
-	monitor, err := NewMonitor(db, logger)
+	monitor, err := NewMonitor(ctx, db, logger)
 	if err != nil {
 		return fmt.Errorf("Error setting up monitoring: %w", err)
 	}
@@ -82,7 +85,12 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 		}()
 		fmt.Println("Listening to traffic on port ", webport)
 	}
-	c.Run()
+	go func() {
+		c.Run()
+		stop()
+	}()
+	<-ctx.Done()
+	<-c.Stop().Done()
 	return nil
 }
 

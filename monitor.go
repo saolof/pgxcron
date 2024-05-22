@@ -11,14 +11,15 @@ import (
 )
 
 type Monitor struct {
+	BgCtx              context.Context
 	q                  *history.Queries
 	ErrorLog           *log.Logger
 	ActiveJobs         *prometheus.GaugeVec
 	MetricDescriptions map[string]*prometheus.Desc
 }
 
-func NewMonitor(db history.DBTX, logger *log.Logger) (m Monitor, err error) {
-	queries, err := history.Prepare(context.TODO(), db)
+func NewMonitor(ctx context.Context, db history.DBTX, logger *log.Logger) (m Monitor, err error) {
+	queries, err := history.Prepare(ctx, db)
 	if err != nil {
 		return m, err
 	}
@@ -28,6 +29,7 @@ func NewMonitor(db history.DBTX, logger *log.Logger) (m Monitor, err error) {
 	descriptions := map[string]*prometheus.Desc{"database_status": db_status, "last_job_status": job_status}
 
 	return Monitor{
+		BgCtx:    ctx,
 		q:        queries,
 		ErrorLog: logger,
 		ActiveJobs: prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -84,8 +86,8 @@ func (m Monitor) endJob(ctx context.Context, id JobId, status string) error {
 	})
 }
 
-func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
-	if err := m.endJob(ctx, id, "failed"); err != nil {
+func (m Monitor) Fail(id JobId, err error) {
+	if err := m.endJob(context.Background(), id, "failed"); err != nil {
 		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
 	}
 	m.ErrorLog.Println(err)
@@ -97,13 +99,13 @@ func (m Monitor) Fail(ctx context.Context, id JobId, err error) {
 	gauge.Dec()
 }
 
-func (m Monitor) Complete(ctx context.Context, id JobId) {
-	if err := m.endJob(ctx, id, "completed"); err != nil {
+func (m Monitor) Complete(id JobId) {
+	if err := m.endJob(context.Background(), id, "completed"); err != nil {
 		m.ErrorLog.Printf("Error writing status update to sqlite: %s", err)
 	}
 	gauge, err := m.ActiveJobs.GetMetricWithLabelValues(id.database, id.jobname)
 	if err != nil {
-		m.ErrorLog.Printf("While failing, failed to find metric for failing job: %s", err)
+		m.ErrorLog.Printf("While completing, failed to find metric for completed job: %s", err)
 		return
 	}
 	gauge.Dec()
@@ -142,7 +144,7 @@ func (m Monitor) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (m Monitor) collectDatabaseStatuses(desc *prometheus.Desc, ch chan<- prometheus.Metric) {
-	onfiremap, err := m.OnFireStatus(context.TODO())
+	onfiremap, err := m.OnFireStatus(m.BgCtx)
 	if err != nil {
 		return
 	}
@@ -160,7 +162,7 @@ func (m Monitor) collectDatabaseStatuses(desc *prometheus.Desc, ch chan<- promet
 }
 
 func (m Monitor) collectJobStatuses(desc *prometheus.Desc, ch chan<- prometheus.Metric) {
-	statuses, err := m.q.LastJobCompletedStatus(context.TODO())
+	statuses, err := m.q.LastJobCompletedStatus(m.BgCtx)
 	if err != nil {
 		return
 	}
