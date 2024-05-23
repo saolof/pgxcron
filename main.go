@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"syscall"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/robfig/cron/v3"
@@ -42,7 +43,7 @@ func makeJobs(cronfile string, databasefile string, logger *log.Logger, monitor 
 }
 
 func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, check bool, crontab, databases, historyfile string, args []string) error {
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	db, err := sql.Open("sqlite3", historyfile)
 	if err != nil {
