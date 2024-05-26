@@ -33,14 +33,14 @@ CREATE TRIGGER IF NOT EXISTS sequential_jobnumber AFTER INSERT ON jobruns
 END;
 
 CREATE TRIGGER IF NOT EXISTS last_seen_update AFTER UPDATE OF status ON jobruns
-WHEN NEW.status in ('failed','completed')
+WHEN NEW.ended <> ''
 BEGIN
   INSERT INTO last_db_status (database, last_seen, available)
-  VALUES (NEW.database, NEW.started, NEW.status <> 'failed') 
+  VALUES (NEW.database, NEW.ended, NEW.status <> 'failed')
   ON CONFLICT(database) DO UPDATE
   SET last_seen = excluded.last_seen, available= excluded.available;
   INSERT INTO last_finished_job_status (jobname, jobnumber, last_seen, succeeded)
-  VALUES (NEW.jobName, NEW.jobnumber ,NEW.started, NEW.status <> 'failed')
+  VALUES (NEW.jobName, NEW.jobnumber ,NEW.ended, NEW.status <> 'failed')
   ON CONFLICT(jobname) DO UPDATE
   SET jobnumber=excluded.jobnumber, last_seen = excluded.last_seen, succeeded= excluded.succeeded;
 END;
@@ -50,3 +50,4 @@ AFTER UPDATE OF jobnumber ON last_finished_job_status
 BEGIN
     DELETE FROM jobruns WHERE jobName = NEW.jobname AND jobnumber < NEW.jobnumber - 1000;
 END;
+
