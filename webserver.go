@@ -31,6 +31,7 @@ type JobDisplay struct {
 	Database         string
 	Name             string
 	Query            string
+	Description      string
 	Icon             string
 	IsRunning        bool
 	Nextrun          time.Time
@@ -55,13 +56,14 @@ func computeJobDisplay(ctx context.Context, m Monitor, now time.Time, job Job) (
 		return display, err
 	}
 	display = JobDisplay{
-		Database:  job.DbName,
-		Name:      job.JobName,
-		Query:     job.Query,
-		IsRunning: jobcount != 0,
-		Icon:      "🔵",
-		Nextrun:   job.Schedule.Next(now),
-		Runs:      recent,
+		Database:    job.DbName,
+		Name:        job.JobName,
+		Query:       job.Query,
+		Description: job.misc.Description,
+		IsRunning:   jobcount != 0,
+		Icon:        "🔵",
+		Nextrun:     job.Schedule.Next(now),
+		Runs:        recent,
 	}
 	if len(recent) > 0 && recent[0].Status == "failed" {
 		display.Icon = "🔴"

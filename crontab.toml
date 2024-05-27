@@ -10,6 +10,7 @@ query="analyze"
 
 [test-healthcheck]
 cronschedule="* * * * *"
+description="This is a special healthcheck!"
 database="test"
 query="select 1"
 

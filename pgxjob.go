@@ -54,6 +54,7 @@ func CreateJob(jobname, dbname string, s Schedule, target, query string, misc Jo
 		Schedule: s,
 		Query:    query,
 		config:   config,
+		misc:     misc,
 		monitor:  monitor,
 		valid:    true,
 	}, nil

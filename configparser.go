@@ -46,6 +46,7 @@ func DecodeDatabases(crontab io.Reader, usepgpass bool) (map[string]string, erro
 type JobMiscOptions struct {
 	SkipValidation      bool
 	AllowConcurrentJobs bool
+	Description         string
 }
 
 type JobConfig struct {
