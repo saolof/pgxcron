@@ -42,7 +42,7 @@ func makeJobs(cronfile string, databasefile string, logger *log.Logger, monitor 
 	return CreateJobs(jobconfigs, databases, monitor)
 }
 
-func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, check bool, crontab, databases, historyfile string, args []string) error {
+func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, check bool, crontab, databases, historyfile, run_now string, args []string) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	db, err := sql.Open("sqlite3", historyfile)
@@ -65,6 +65,16 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 	if check {
 		fmt.Println("Validated config files.")
 		return nil
+	}
+	if run_now != "" {
+		for _, job := range jobs {
+			if job.JobName == run_now {
+				job.Run()
+				fmt.Println("Ran: ", job.JobName)
+				return nil
+			}
+		}
+		return fmt.Errorf("Job %s was not found!", run_now)
 	}
 	fmt.Println("Validated config files, starting up cron jobs...")
 	c := cron.New()
@@ -99,9 +109,11 @@ func main() {
 	databases := "databases.toml"
 	crontab := "crontab.toml"
 	historyfile := "file::memory:?cache=shared"
+	run_now := ""
 	flag.StringVar(&databases, "databases", databases, "Path to the list of databases.")
 	flag.StringVar(&crontab, "crontab", crontab, "Path to the list of cron jobs.")
 	flag.StringVar(&historyfile, "historyfile", historyfile, "Path to the database file used for job history logging.")
+	flag.StringVar(&run_now, "runnow", run_now, "Run a specific right now instead of scheduling it.")
 	webport := flag.Int("webport", 8035, "The port used for the web interface that can be used to check on recent jobs. Set to zero to disable the web interface.")
 	check := flag.Bool("check", false, "This flag disables spinning up the cron jobs and just syntax checks the config.")
 	version := flag.Bool("version", false, "Check go module version")
@@ -112,7 +124,7 @@ func main() {
 		os.Exit(0)
 	}
 	ctx := context.Background()
-	if err := run(ctx, os.Stdout, log.Default(), *webport, *check, crontab, databases, historyfile, os.Args); err != nil {
+	if err := run(ctx, os.Stdout, log.Default(), *webport, *check, crontab, databases, historyfile, run_now, os.Args); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
