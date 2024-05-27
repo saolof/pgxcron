@@ -130,8 +130,8 @@ func webserver(port int, jobs []Job, monitor Monitor) *http.Server {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(monitor)
 	mux := http.NewServeMux()
-	mux.Handle("GET /static/", setHeader(http.FileServer(http.FS(FSstatic)), "Cache-Control", "max-age=86400"))
-	mux.HandleFunc("GET /jobs", showjobs(jobs, monitor))
+	mux.Handle("/static/", setHeader(http.FileServer(http.FS(FSstatic)), "Cache-Control", "max-age=86400"))
+	mux.HandleFunc("/jobs", showjobs(jobs, monitor))
 	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg, ErrorLog: monitor.ErrorLog}))
 
 	var h http.Handler = mux
