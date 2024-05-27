@@ -70,7 +70,7 @@ func run(ctx context.Context, w io.Writer, logger *log.Logger, webport int, chec
 		for _, job := range jobs {
 			if job.JobName == run_now {
 				job.Run()
-				fmt.Println("Ran: ", job.JobName)
+				fmt.Println("Ran:", job.JobName)
 				return nil
 			}
 		}
