@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"slices"
 	"strings"
 	"time"
@@ -26,7 +28,7 @@ type Job struct {
 	valid    bool
 }
 
-func CreateJob(jobname, dbname string, s Schedule, target, query string, misc JobMiscOptions, monitor Monitor) (j Job, err error) {
+func CreateJob(jobname, dbname string, s Schedule, target, query string, ssh SSHConnConfig, misc JobMiscOptions, monitor Monitor) (j Job, err error) {
 	if jobname == "" || dbname == "" || s == nil {
 		return j, fmt.Errorf("Received nil input(s) when creating %s", jobname)
 	}
@@ -46,6 +48,15 @@ func CreateJob(jobname, dbname string, s Schedule, target, query string, misc Jo
 	}
 	if config.ConnectTimeout == time.Duration(0) { // Default to 50 seconds if no finite timeout is provided
 		config.ConnectTimeout = 50 * time.Second // via the standard pgx & psql PGCONNECT_TIMEOUT env var
+	}
+	if ssh.Host != "" {
+		client, err := NewSSHClient(&ssh)
+		if err != nil {
+			return j, err
+		}
+		config.DialFunc = func(ctx context.Context, network string, addr string) (net.Conn, error) {
+			return client.Dial(network, addr)
+		}
 	}
 
 	return Job{
