@@ -14,31 +14,31 @@ type DatabaseConfig struct {
 	ConnString    string
 	PasswordVar   string
 	JustUsePgPass bool
+	Sshconfig     SSHConnConfig
 }
 
-func DecodeDatabases(crontab io.Reader, usepgpass bool) (map[string]string, error) {
+func DecodeDatabases(crontab io.Reader, usepgpass bool) (map[string]DatabaseConfig, error) {
 	var configs map[string]DatabaseConfig
 	decoder := toml.NewDecoder(crontab)
 	err := decoder.Decode(&configs)
 	if err != nil {
 		return nil, err
 	}
-	databases := map[string]string{}
+	databases := map[string]DatabaseConfig{}
 	for key, config := range configs {
 		if config.ConnString == "" {
 			return nil, fmt.Errorf("Missing connstring in database %s", key)
 		}
 		if usepgpass || config.JustUsePgPass {
-			databases[key] = strings.Replace(config.ConnString, ":$password", "", 1)
-		} else if config.PasswordVar == "" {
-			databases[key] = config.ConnString
-		} else {
+			config.ConnString = strings.Replace(config.ConnString, ":$password", "", 1)
+		} else if config.PasswordVar != "" {
 			password := os.Getenv(config.PasswordVar)
 			if password == "" {
 				return nil, fmt.Errorf("Injected passwordvar %s is empty!", config.PasswordVar)
 			}
-			databases[key] = strings.Replace(config.ConnString, "$password", password, 1)
+			config.ConnString = strings.Replace(config.ConnString, "$password", password, 1)
 		}
+		databases[key] = config
 	}
 	return databases, nil
 }
@@ -65,18 +65,18 @@ func DecodeJobs(crontab io.Reader) (jobconfigs map[string]JobConfig, err error) 
 	return jobconfigs, nil
 }
 
-func CreateJobs(configs map[string]JobConfig, databases map[string]string, monitor Monitor) ([]Job, error) {
+func CreateJobs(configs map[string]JobConfig, databases map[string]DatabaseConfig, monitor Monitor) ([]Job, error) {
 	jobs := []Job{}
 	for name, config := range configs {
 		schedule, err := cron.ParseStandard(config.CronSchedule)
 		if err != nil {
 			return nil, fmt.Errorf("Cron schedule error: %w", err)
 		}
-		connstr, ok := databases[config.Database]
+		dbconfig, ok := databases[config.Database]
 		if !ok {
 			return nil, fmt.Errorf("Missing Db: The database %s specified by job %s does not seem to exist!", config.Database, name)
 		}
-		job, err := CreateJob(name, config.Database, schedule, connstr, config.Query, config.JobMiscOptions, monitor)
+		job, err := CreateJob(name, config.Database, schedule, dbconfig.ConnString, config.Query, dbconfig.Sshconfig, config.JobMiscOptions, monitor)
 		if err != nil {
 			return nil, err
 		}
